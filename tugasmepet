@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>Latihan DOM</title>
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css" 
+    integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T" crossorigin="anonymous">
+    <script defer src="https://use.fontawesome.com/releases/v5.8.1/js/all.js" 
+    integrity="sha384-g5uSoOSBd7KkhAMlnQILrecXvzst9TdC09/VM+pjDTCM+1il8RHz5fKANTFFb+gQ" crossorigin="anonymous"></script>
+</head>
+<body>
+    <div class="container">
+        <nav class="navbar navbar-light bg-light">
+            <a class="navbar-brand">Mini Ecommerce</a>
+            <form class="form-inline" id="formItem">
+                <input class="form-control mr-sm-2" type="search" placeholder="Search" id="keyword" aria-label="Search">
+                <button class="btn btn-outline-success my-2 my-sm-0" type="submit" id="searchItem">Search</button>
+            </form>
+            <button class="btn btn-primary" data-toggle="modal" data-target="#cartModal" id="cart">
+                <i class="fas fa-shopping-cart"></i> (<span id="cartCount">0</span>)
+            </button>
+        </nav>
+        <div class="row" id="listBarang"></div>
+    </div>
+
+    <!-- Modal -->
+    <div class="modal fade" id="cartModal" tabindex="-1" role="dialog" aria-labelledby="cartModalLabel" aria-hidden="true">
+        <div class="modal-dialog" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="cartModalLabel">Keranjang Belanja</h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body" id="cartItems">
+                    <p>Keranjang kosong.</p>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Tutup</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://code.jquery.com/jquery-3.3.1.slim.min.js" 
+    integrity="sha384-q8i/X+965DzO0rT7abK41JStQIAqVgRVzpbzo5smXKp4YfRvH+8abtTE1Pi6jizo" crossorigin="anonymous"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.7/umd/popper.min.js" 
+    integrity="sha384-UO2eT0CpHqdSJQ6hJty5KVphtPhzWj9WO1clHTMGa+2xNMk+7x9e3DyEt7CUMhkt" crossorigin="anonymous"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js" 
+    integrity="sha384-JjSmVgyd0p3pXB1rRibZUAYoIIy6OrQ6VrjIEaFf/nJGzIxFDsf4x0xIM+B07jRM" crossorigin="anonymous"></script>
+    <script>
+        const items = [
+            ['001', 'Keyboard Logitek', 60000, 'Keyboard yang mantap untuk kantoran', 'https://images.tokopedia.net/img/cache/500-square/VqbcmM/2023/5/2/6404bd0b-790a-4cfc-a7d3-13074ef15706.png'],
+            ['002', 'Keyboard MSI', 300000, 'Keyboard gaming MSI mekanik', 'https://down-id.img.susercontent.com/file/sg-11134201-22120-8d1mx7aasnlvb3'],
+            ['003', 'Mouse Genius', 50000, 'Mouse Genius biar lebih pinter', 'https://id-test-11.slatic.net/p/017c8a1296ddc3c87ec8d592a74a8df0.jpg'],
+            ['004', 'Mouse Jerry', 30000, 'Mouse yang disukai kucing', 'https://down-id.img.susercontent.com/file/sg-11134201-23020-92i1361re5mv18']
+        ];
+
+        const cart = [];
+        const listBarang = document.getElementById('listBarang');
+        const cartCount = document.getElementById('cartCount');
+        const cartItems = document.getElementById('cartItems');
+        const keywordInput = document.getElementById('keyword');
+
+        function displayItems(filteredItems = items) {
+            listBarang.innerHTML = '';
+            filteredItems.forEach(item => {
+                const card = document.createElement('div');
+                card.className = 'col-4 mt-2';
+                card.innerHTML = `
+                    <div class="card" style="width: 18rem;">
+                        <img src="${item[4]}" class="card-img-top" alt="${item[1]}" height="200">
+                        <div class="card-body">
+                            <h5 class="card-title">${item[1]}</h5>
+                            <p class="card-text">${item[3]}</p>
+                            <p class="card-text">Rp ${item[2].toLocaleString()}</p>
+                            <button class="btn btn-primary add-cart" data-id="${item[0]}">Tambahkan ke keranjang</button>
+                        </div>
+                    </div>
+                `;
+                listBarang.appendChild(card);
+            });
+
+            document.querySelectorAll('.add-cart').forEach(button => {
+                button.addEventListener('click', addToCart);
+            });
+        }
+
+        function addToCart(event) {
+            const itemId = event.target.getAttribute('data-id');
+            const selectedItem = items.find(item => item[0] === itemId);
+            cart.push(selectedItem);
+            updateCart();
+        }
+
+        function updateCart() {
+            cartCount.textContent = cart.length;
+            cartItems.innerHTML = '';
+            if (cart.length === 0) {
+                cartItems.innerHTML = '<p>Keranjang kosong.</p>';
+                return;
+            }
+            cart.forEach((item, index) => {
+                const cartItem = document.createElement('div');
+                cartItem.className = 'cart-item mb-2';
+                cartItem.innerHTML = `
+                    <div class="d-flex justify-content-between align-items-center">
+                        <p>${item[1]} - Rp ${item[2].toLocaleString()}</p>
+                        <button class="btn btn-danger btn-sm remove-item" data-index="${index}">Hapus</button>
+                    </div>
+                `;
+                cartItems.appendChild(cartItem);
+            });
+
+            document.querySelectorAll('.remove-item').forEach(button => {
+                button.addEventListener('click', removeFromCart);
+            });
+        }
+
+        function removeFromCart(event) {
+            const index = event.target.getAttribute('data-index');
+            cart.splice(index, 1);
+            updateCart();
+        }
+
+        document.getElementById('formItem').addEventListener('submit', function (event) {
+            event.preventDefault();
+            const keyword = keywordInput.value.toLowerCase();
+            const filteredItems = items.filter(item => 
+                item[1].toLowerCase().includes(keyword) || 
+                item[3].toLowerCase().includes(keyword)
+            );
+            displayItems(filteredItems);
+        });
+
+        // Initial Display
+        displayItems();
+    </script>
+</body>
+</html>
